@@ -1,0 +1,331 @@
+communicating protocol
+1. communication interface .............................................................................................................. 1
+2. realize function.............................................................................................................................. 1
+3. protocol ......................................................................................................................................... 1
+3.1 Interpretation of special data.............................................................................................. 1
+3.2 Upper computer frame data ............................................................................................... 2
+3.2.1 Start the real-time sending instruction frame.......................................................... 2
+3.2.2. Stop the instruction frame ...................................................................................... 2
+3.2.3. Start sending the recording data instruction frame ................................................ 2
+3.2.4. Time synchronization instruction frame ................................................................. 2
+3.2.5. Functions to set the data frame .............................................................................. 2
+3.3 Detailed explanation of the lower bit computer data frame Error! Bookmark not defined.
+3.3.1 Detailed explanation of the data.............................................................................. 2
+4. Revised records .............................................................................. Error! Bookmark not defined.
+
+1. communication interface
+The PC connection through USB, using the serial port for communication, port rate 9600,1
+bit stop bit, 8 bit data bit, no parity.
+
+2. realize function
+2.1 PC sends instructions (0x01) to the lower computer to transmit real-time data
+2.2 The PC terminal will send instructions (0x00) to the lower computer computer, stop the
+data transmission, and return the model and version number
+2.3 The PC sends instructions (0x02) to the lower computer to transmit the recorded data
+2.4 The PC terminal sends instructions (0x03) to the lower computer to achieve timestamp
+synchronization
+.5 2PC sends instructions (0x04) to the lower computer to realize function setting
+2.6 The lower bit computer sends real-time temperature data to the PC (only once)
+2.7 The lower computer sends record temperature data to PC (until delivery, up to 64 bytes
+at a time, redundant bytes are divided into two frames)
+2.8 The lower position computer sends the model and version number data
+
+3. protocol
+Frame
+head
+
+instruct
+
+Frame length
+
+time
+stamp
+
+data
+
+…
+
+Sum
+verification
+
+16bits
+(low
+bytes
+before)
+
+8bits
+
+8bits
+(the
+length of one
+frame data,
+excluding the
+frame
+header,
+in
+bytes (8bits),
+no
+more
+than
+62
+bytes)
+
+32
+Positions
+unix
+time
+stamp
+In
+seconds
+(send in
+low
+bytes
+before)
+
+16 The
+Actual
+data
+expanded
+10 times
+(send in
+low bytes
+before)
+
+…
+
+8bits
+(calculate
+from the
+frame
+head,
+retain the
+last 8 bits)
+
+3.1 Interpretation of special data
+3.1
+Temperature data for the remaining 3 channels
+1
+
+3.2 Upper computer frame data
+3.2.1 Start the real-time sending instruction frame
+Frame head
+
+instruct
+
+Frame length
+
+Sum
+
+0x55AA
+
+0x01
+
+0x03
+
+0x03
+
+3.2.2. Stop the instruction frame
+Frame head
+
+instruct
+
+Frame length
+
+Sum
+
+0x55AA
+
+0x00
+
+0x03
+
+0x02
+
+3.2.3. Start sending the recording data instruction frame
+Frame head
+
+instruct
+
+Frame length
+
+Sum
+
+0x55AA
+
+0x02
+
+0x03
+
+0x04
+
+3.2.4. Time synchronization instruction frame
+Frame head
+
+instruct
+
+Frame length
+
+time stamp
+
+Sum
+
+0x55AA
+
+0x03
+
+0x07
+
+7*8bits
+
+x
+
+The timestamp is BCD code, sent to the next machine in the order of "second",
+"minute,", "," time "," week "," day "," month "," year ".
+3.2.5. Functions to set the data frame
+Frame head
+
+instruct
+
+Frame
+length
+
+set
+up
+parameters
+
+…
+
+Sum
+
+0x55AA
+
+0x04
+
+8bits
+
+x
+
+…
+
+8bits
+
+1 Set the parameter details
+Detailed interpretation of data
+1. Real-time data frames
+Frame head
+
+instr
+uct
+
+Frame
+length
+
+Channel
+data
+
+Sum
+
+0xAA55
+
+0x01
+
+x
+
+16bits
+*
+4channel
+
+x
+
+According to the order of channel 1, channel 2, channel 3 and channel 4.
+2. Model number and version number frame
+Frame head
+
+instruct
+
+Frame length
+
+model
+
+version
+number
+
+Sum
+
+0xAA55
+
+0x00
+
+0x06
+
+16bits
+
+16bits
+
+0x06
+
+2.1 Detailed explanation
+Decimal 0D 612 is 16 decimal 0x 264
+2.2 Version No
+2
+
+Version number: 16bits, 100 times expansion, 0 is no version number
+For example, V1.00 is a decimal of 100
+
+3. Record the data frames
+Frame
+head
+
+instruct
+
+Frame
+length
+
+Channel
+data
+
+Sum
+
+0xAA55
+
+0x02
+
+N
+
+16bits
+*
+4channel
+
+X
+
+5. instance
+The computer terminal connects the device through XCOM serial port assistant, and the
+connection parameters are port rate 9600,1 bit stop bit, 8 bit data bit, no parity;
+1. Get device information
+Send 16 decimal data through XCOM: AA 55 00 03 02;
+TA612 return: 55 AA 00 07 64 02 22 01 8F;
+Where 0x 64 and 0x02 constitute 0x 0264, the decimal system is 612, representing TA612;
+Where 0x 22 and 0x01 form 0x 0122; the decimal system is 290, representing V2.90;
+
+3
+
+2. Get real-time data
+Send 16 decimal data through XCOM: AA 55 01 03 03;
+TA612 return: 55 AA 01 0B 13 01 0D 01 0C 01 0D 01 48;
+0x 13 and 0x 01 constitute 0x 0113, decimal is 275,10 times smaller, 27.5, the default unit
+is ℃;
+The remaining bytes successively form 0x 010D, 0x010C, 0x010D, representing the
+temperature values of channel 2,3, and 4
+
+3. Get the record value
+Send 16 decimal data through XCOM: AA 55 02 03 04;
+The device returns multiple packets, each packet is 64 bytes, the starting data of each packet
+is 55 AA 02, data frame length, channel 1 data, channel 2 data, channel three data; channel 1
+data, channel three data; channel 1 data, channel 2 data, channel 4 data; data, data frame check
+bit;
+
+4
+
+5
+
+
