@@ -76,16 +76,16 @@ CSV files contain temperature readings in degrees Celsius:
 python src/thermal_logger.py /dev/ttyUSB0
 
 # Auto-generated filename in specific directory
-python src/thermal_logger.py /dev/ttyUSB0 -p /home/maron2/data
+python src/thermal_logger.py /dev/ttyUSB0 -p ~/Documents/repos/internal/thermal_logger/logs
 
 # Custom filename in current directory
 python src/thermal_logger.py /dev/ttyUSB0 -o mydata.csv
 
 # Custom filename in specific directory
-python src/thermal_logger.py /dev/ttyUSB0 -o mydata.csv -p /home/maron2/data
+python src/thermal_logger.py /dev/ttyUSB0 -o mydata.csv -p ~/Documents/repos/internal/thermal_logger/logs
 
 # Recorded data with auto-generated name
-python src/thermal_logger.py /dev/ttyUSB0 -m recorded -p ./recordings
+python src/thermal_logger.py /dev/ttyUSB0 -m recorded -p ~/Documents/repos/internal/thermal_logger/logs
 ```
 
 ### Finding Your Serial Port
