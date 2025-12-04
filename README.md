@@ -69,7 +69,7 @@ CSV files contain temperature readings in degrees Celsius:
 
 ## Examples
 
-### Basic Usage
+### Basic Data Logging Usage
 
 ```bash
 # Auto-generated filename in current directory
@@ -104,3 +104,49 @@ ls /dev/tty.usb*
 
 **Windows:**
 Check Device Manager for COM port number.
+
+
+## Data Review & Analysis
+
+### Plotting Data
+
+Plot all channels from a CSV file:
+
+```bash
+# Display plot interactively
+python src/plot_thermal_data.py logs/off_to_full_speed.csv
+
+# Save to image file
+python src/plot_thermal_data.py logs/off_to_full_speed.csv -o plot.png
+
+# Other formats
+python src/plot_thermal_data.py logs/off_to_full_speed.csv -o plot.pdf
+python src/plot_thermal_data.py logs/off_to_full_speed.csv -o plot.svg
+```
+
+The plotting script automatically:
+- Detects real-time vs recorded data format
+- Only plots channels with valid data (skips channels with only ERROR values)
+- Displays interactive plot or saves to file
+
+### Analyzing Cooling Curves
+
+Fit Newton's Law of Cooling to thermal data to determine thermal time constant:
+
+```bash
+# Basic usage with default column (ch1_celsius)
+python src/analyze_cooling.py -i logs/off_to_full_speed.csv -o logs/
+
+# Analyze a different channel
+python src/analyze_cooling.py -i logs/thermal_data.csv -c ch2_celsius -o output/
+
+# Save to current directory
+python src/analyze_cooling.py -i logs/off_to_full_speed.csv -c ch1_celsius -o .
+```
+
+The analysis script:
+- Automatically identifies peak temperature and cooling phase
+- Fits exponential cooling model: T(t) = T_env + (T_0 - T_env) * exp(-t/τ)
+- Calculates thermal time constant (τ) with uncertainty estimates
+- Generates plots with fit results and residuals
+- Output file: `cooling_fit_analysis_{input_filename}.png`

@@ -18,6 +18,6 @@ set grid
 set style line 1 lc rgb '#0060ad' lt 1 lw 2 pt 7 ps 0.5
 
 # Plot the data
-# Skip header row, use column 1 (sample_num) for x and column 2 (ch1_celsius) for y
+# Skip header row, use row number for x and column 2 (ch1_celsius) for y
 # Filter out ERROR values by checking if it's a number
-plot '../../logs/off_to_full_speed.csv' every ::1 using 1:(strcol(2) eq "ERROR" ? NaN : $2) with linespoints ls 1 notitle
+plot '/home/maron2/Documents/repos/internal/thermal_logger/logs/off_to_full_speed.csv' every ::1 using 0:(stringcolumn(2) eq "ERROR" ? NaN : column(2)) with linespoints ls 1 notitle
