@@ -150,3 +150,30 @@ The analysis script:
 - Calculates thermal time constant (τ) with uncertainty estimates
 - Generates plots with fit results and residuals
 - Output file: `cooling_fit_analysis_{input_filename}.png`
+
+### Analyzing Heating Curves
+
+Fit exponential heating model to thermal data to determine thermal time constant:
+
+```bash
+# Basic usage with default column (ch1_celsius)
+python src/analysis/analyze_heating.py -i logs/thermal_data.csv -o logs/
+
+# Analyze a different channel
+python src/analysis/analyze_heating.py -i logs/thermal_data.csv -c ch2_celsius -o output/
+
+# Manually specify heating start time (in seconds from data start)
+python src/analysis/analyze_heating.py -i logs/thermal_data.csv -o logs/ -s 100
+
+# Save to current directory
+python src/analysis/analyze_heating.py -i logs/thermal_data.csv -c ch1_celsius -o .
+```
+
+The analysis script:
+- Automatically identifies peak temperature and heating phase
+- Detects and removes initial steady-state data before heating begins
+- Fits exponential heating model: T(t) = T_final - (T_final - T_0) * exp(-t/τ)
+- Calculates thermal time constant (τ) with uncertainty estimates
+- Generates plots with fit results and residuals
+- Output file: `heating_fit_analysis_{input_filename}.png`
+- Use `-s` flag to manually override automatic heating start detection

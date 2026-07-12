@@ -48,6 +48,12 @@ def main():
         default='.',
         help='Output directory for the analysis plot (default: current directory)'
     )
+    parser.add_argument(
+        '-s', '--start-time',
+        type=float,
+        default=None,
+        help='Manual heating start time in seconds from data start (optional, overrides auto-detection)'
+    )
     
     args = parser.parse_args()
     
@@ -91,9 +97,15 @@ def main():
     t_to_peak = time_seconds[:peak_idx+1]
     T_to_peak = temps[:peak_idx+1]
     
-    # Detect start of heating by finding where temperature rate of change increases significantly
-    # Calculate moving average of temperature derivative to smooth out noise
-    window_size = max(10, len(T_to_peak) // 50)  # Adaptive window size
+    # Check if user provided manual start time
+    if args.start_time is not None:
+        # Find index closest to specified start time
+        heating_start_idx = np.argmin(np.abs(t_to_peak - args.start_time))
+        print(f"Using manual heating start time: t={t_to_peak[heating_start_idx]:.1f}s, T={T_to_peak[heating_start_idx]:.2f}°C")
+    else:
+        # Detect start of heating by finding where temperature rate of change increases significantly
+        # Calculate moving average of temperature derivative to smooth out noise
+        window_size = max(10, len(T_to_peak) // 50)  # Adaptive window size
     dT_dt = np.gradient(T_to_peak, t_to_peak)
     
     # Use a moving average to smooth the derivative
@@ -139,9 +151,9 @@ def main():
                 heating_start_idx = max(0, i - 5)  # Start slightly before threshold crossing
                 print(f"Using alternative detection method (temperature threshold)")
                 break
-    
-    print(f"Detected heating start at t={t_to_peak[heating_start_idx]:.1f}s, T={T_to_peak[heating_start_idx]:.2f}°C")
-    print(f"Skipped {heating_start_idx} initial steady-state data points")
+        
+        print(f"Detected heating start at t={t_to_peak[heating_start_idx]:.1f}s, T={T_to_peak[heating_start_idx]:.2f}°C")
+        print(f"Skipped {heating_start_idx} initial steady-state data points")
     
     # Extract heating phase (from heating start to peak)
     t_heating = t_to_peak[heating_start_idx:]
